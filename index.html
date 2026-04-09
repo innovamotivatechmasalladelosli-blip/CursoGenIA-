@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InnovACurso+ - Generador de Cursos con Inteligencia Artificial</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script type="importmap">
+        {
+            "imports": {
+                "marked": "https://cdn.jsdelivr.net/npm/marked@9.1.6/lib/marked.esm.js",
+                "dompurify": "https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.es.js"
+            }
+        }
+    </script>
+    <script src="script.js" type="module" defer></script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <svg viewBox="0 0 320 50" width="220" height="45">
+                    <path d="M20,10 Q35,5 40,20 T60,30" fill="none" stroke="#4CAF50" stroke-width="3"/>
+                    <circle cx="20" cy="10" r="5" fill="#FF5722"/>
+                    <circle cx="60" cy="30" r="5" fill="#2196F3"/>
+                    <text x="70" y="30" font-family="Poppins" font-size="22" font-weight="bold" fill="#333">InnovACurso<tspan fill="#4CAF50">+</tspan></text>
+                </svg>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#inicio">Inicio</a></li>
+                    <li><a href="#funcionalidades">Funcionalidades</a></li>
+                    <li><a href="#generador">Generador</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section id="inicio" class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1>Crea cursos completos en minutos con IA</h1>
+                    <p>CursoGen AI utiliza inteligencia artificial avanzada para generar contenido educativo estructurado, detallado y personalizado para tus necesidades específicas.</p>
+                    <a href="#generador" class="btn btn-primary">Probar ahora</a>
+                </div>
+                <div class="hero-image">
+                    <svg viewBox="0 0 500 400" width="500" height="400">
+                        <!-- Brain with connections representing AI -->
+                        <ellipse cx="250" cy="180" rx="120" ry="100" fill="#f8f9fa" stroke="#4CAF50" stroke-width="3"/>
+                        <path d="M250,80 C290,110 330,130 350,180 C330,230 290,250 250,280 C210,250 170,230 150,180 C170,130 210,110 250,80" fill="#e9f5e9" stroke="#4CAF50" stroke-width="3"/>
+                        
+                        <!-- Course modules -->
+                        <rect x="100" y="300" width="70" height="50" rx="5" fill="#2196F3" opacity="0.8"/>
+                        <rect x="180" y="300" width="70" height="50" rx="5" fill="#FF5722" opacity="0.8"/>
+                        <rect x="260" y="300" width="70" height="50" rx="5" fill="#4CAF50" opacity="0.8"/>
+                        <rect x="340" y="300" width="70" height="50" rx="5" fill="#9C27B0" opacity="0.8"/>
+                        
+                        <!-- Connection lines -->
+                        <line x1="250" y1="230" x2="135" y2="300" stroke="#333" stroke-width="2" stroke-dasharray="5,5"/>
+                        <line x1="250" y1="230" x2="215" y2="300" stroke="#333" stroke-width="2" stroke-dasharray="5,5"/>
+                        <line x1="250" y1="230" x2="295" y2="300" stroke="#333" stroke-width="2" stroke-dasharray="5,5"/>
+                        <line x1="250" y1="230" x2="375" y2="300" stroke="#333" stroke-width="2" stroke-dasharray="5,5"/>
+                        
+                        <!-- Nodes in brain -->
+                        <circle cx="200" cy="150" r="8" fill="#FF5722"/>
+                        <circle cx="270" cy="130" r="8" fill="#2196F3"/>
+                        <circle cx="230" cy="190" r="8" fill="#9C27B0"/>
+                        <circle cx="290" cy="180" r="8" fill="#4CAF50"/>
+                        <circle cx="220" cy="160" r="8" fill="#FFC107"/>
+                        
+                        <circle class="pulse" cx="200" cy="150" r="12" fill="transparent" stroke="#FF5722" stroke-width="2"/>
+                        <circle class="pulse" cx="270" cy="130" r="12" fill="transparent" stroke="#2196F3" stroke-width="2"/>
+                        <circle class="pulse" cx="230" cy="190" r="12" fill="transparent" stroke="#9C27B0" stroke-width="2"/>
+                        <circle class="pulse" cx="290" cy="180" r="12" fill="transparent" stroke="#4CAF50" stroke-width="2"/>
+                        <circle class="pulse" cx="220" cy="160" r="12" fill="transparent" stroke="#FFC107" stroke-width="2"/>
+                    </svg>
+                </div>
+            </div>
+        </section>
+
+        <section id="funcionalidades" class="features">
+            <div class="container">
+                <h2>Funcionalidades Principales</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg viewBox="0 0 50 50" width="50" height="50">
+                                <circle cx="25" cy="25" r="20" fill="#e9f5e9"/>
+                                <path d="M20,20 L30,30 M30,20 L20,30" stroke="#4CAF50" stroke-width="3" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <h3>Contenido Personalizado</h3>
+                        <p>Genera cursos adaptados a diferentes niveles, objetivos educativos o audiencias específicas.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg viewBox="0 0 50 50" width="50" height="50">
+                                <circle cx="25" cy="25" r="20" fill="#e9f5e9"/>
+                                <path d="M17,25 L23,31 L33,19" stroke="#4CAF50" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                            </svg>
+                        </div>
+                        <h3>Estructura Completa</h3>
+                        <p>Obtén un curso con módulos, lecciones, ejercicios prácticos y evaluaciones.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg viewBox="0 0 50 50" width="50" height="50">
+                                <circle cx="25" cy="25" r="20" fill="#e9f5e9"/>
+                                <path d="M25,15 L25,25 L32,30" stroke="#4CAF50" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                            </svg>
+                        </div>
+                        <h3>Ahorro de Tiempo</h3>
+                        <p>Reduce semanas de trabajo a solo minutos con la generación automática de contenido.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <svg viewBox="0 0 50 50" width="50" height="50">
+                                <circle cx="25" cy="25" r="20" fill="#e9f5e9"/>
+                                <path d="M18,20 L32,20 M18,25 L32,25 M18,30 L28,30" stroke="#4CAF50" stroke-width="3" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                        <h3>Exportación Flexible</h3>
+                        <p>Exporta el contenido en diferentes formatos para plataformas educativas o documentación.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="generador" class="generator">
+            <div class="container">
+                <h2>Generador de Cursos</h2>
+                <div class="generator-container">
+                    <div class="input-section">
+                        <div class="form-group">
+                            <label for="topic">Tema del curso</label>
+                            <input type="text" id="topic" placeholder="Ej: Desarrollo web para principiantes">
+                        </div>
+                        <div class="form-group">
+                            <label for="level">Nivel</label>
+                            <select id="level">
+                                <option value="principiante">Principiante</option>
+                                <option value="intermedio">Intermedio</option>
+                                <option value="avanzado">Avanzado</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="modules">Número de módulos</label>
+                            <input type="number" id="modules" min="1" max="10" value="3">
+                        </div>
+                        <div class="form-group">
+                            <label for="audience">Audiencia objetivo</label>
+                            <input type="text" id="audience" placeholder="Ej: Estudiantes universitarios">
+                        </div>
+                        <div class="form-group">
+                            <label for="objectives">Objetivos de aprendizaje</label>
+                            <textarea id="objectives" placeholder="Ej: Comprender los fundamentos de HTML, CSS y JavaScript"></textarea>
+                        </div>
+                        <button id="generate-btn" class="btn btn-primary">Generar Curso</button>
+                    </div>
+                    <div class="output-section">
+                        <div class="tabs">
+                            <button class="tab-btn active" data-tab="overview">Vista General</button>
+                            <button class="tab-btn" data-tab="content">Contenido</button>
+                            <button class="tab-btn" data-tab="exercises">Ejercicios</button>
+                            <button class="tab-btn" data-tab="quizzes">Cuestionarios</button>
+                        </div>
+                        <div class="loader" id="loader">
+                            <svg width="50" height="50" viewBox="0 0 50 50">
+                                <circle cx="25" cy="25" r="20" fill="none" stroke="#eee" stroke-width="4"/>
+                                <circle cx="25" cy="25" r="20" fill="none" stroke="#4CAF50" stroke-width="4" stroke-dasharray="125" stroke-dashoffset="0" class="progress-circle"/>
+                            </svg>
+                            <p>Generando curso...</p>
+                        </div>
+                        <div class="tab-content active" id="overview-content">
+                            <div class="placeholder-text">La vista general del curso aparecerá aquí</div>
+                        </div>
+                        <div class="tab-content" id="content-content">
+                            <div class="placeholder-text">El contenido detallado del curso aparecerá aquí</div>
+                        </div>
+                        <div class="tab-content" id="exercises-content">
+                            <div class="placeholder-text">Los ejercicios prácticos aparecerán aquí</div>
+                        </div>
+                        <div class="tab-content" id="quizzes-content">
+                            <div class="placeholder-text">Los cuestionarios interactivos aparecerán aquí</div>
+                        </div>
+                        <div class="export-options">
+                            <button id="export-pdf" class="btn btn-secondary" disabled>Exportar PDF</button>
+                            <button id="export-md" class="btn btn-secondary" disabled>Exportar Markdown</button>
+                            <button id="export-quiz" class="btn btn-secondary" disabled>Descargar Quiz + QR</button>
+                            <button id="copy-content" class="btn btn-secondary" disabled>Copiar Contenido</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <svg viewBox="0 0 200 50" width="140" height="35">
+                        <path d="M20,10 Q35,5 40,20 T60,30" fill="none" stroke="#4CAF50" stroke-width="3"/>
+                        <circle cx="20" cy="10" r="5" fill="#FF5722"/>
+                        <circle cx="60" cy="30" r="5" fill="#2196F3"/>
+                        <text x="70" y="30" font-family="Poppins" font-size="18" font-weight="bold" fill="#fff">InnovACurso<tspan fill="#4CAF50">+</tspan></text>
+                    </svg>
+                </div>
+                <p>© 2025 InnovACurso+ de InnovaMotivaTech del módulo InnovA+. Todos los derechos reservados.</p>
+                <p class="disclaimer">Este es un proyecto de demostración. La calidad del contenido generado puede variar.</p>
+            </div>
+        </div>
+    </footer>
+
+    <div id="notification" class="notification">
+        <p></p>
+    </div>
+</body>
+</html>
