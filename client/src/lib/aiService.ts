@@ -1,8 +1,13 @@
 // AI Service - Google Gemini Integration
 // This service handles all AI-powered course generation using Google's Gemini API
 
-const GEMINI_API_KEY = 'AIzaSyDpBV1C7AJqB7BcE8vtAa-3Gd6hhpoZR9g';
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent';
+
+// Validar que la API Key esté configurada
+if (!GEMINI_API_KEY) {
+  console.error('Error: VITE_GEMINI_API_KEY no está configurada en las variables de entorno.');
+}
 
 interface CourseOverviewParams {
   topic: string;
