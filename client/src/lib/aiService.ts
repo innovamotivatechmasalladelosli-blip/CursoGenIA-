@@ -2,7 +2,7 @@
 // This service handles all AI-powered course generation using Google's Gemini API
 
 const GEMINI_API_KEY = 'AIzaSyDpBV1C7AJqB7BcE8vtAa-3Gd6hhpoZR9g';
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent';
 
 interface CourseOverviewParams {
   topic: string;
@@ -31,7 +31,7 @@ interface QuizzesParams {
   level: string;
 }
 
-async function callGeminiAPI(prompt: string, parseJSON: boolean = false): Promise<string> {
+async function callGeminiAPI(prompt: string, isJSON: boolean = false): Promise<string> {
   try {
     const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
       method: 'POST',
@@ -52,7 +52,8 @@ async function callGeminiAPI(prompt: string, parseJSON: boolean = false): Promis
           temperature: 0.7,
           topK: 40,
           topP: 0.95,
-          maxOutputTokens: 4096,
+          maxOutputTokens: 8192,
+          responseMimeType: isJSON ? "application/json" : "text/plain",
         },
         safetySettings: [
           {
@@ -121,7 +122,7 @@ Proporciona:
 4. Duración estimada
 5. Prerrequisitos (si aplican)
 
-Responde ÚNICAMENTE en formato JSON válido, sin texto adicional, con la siguiente estructura exacta:
+Responde ÚNICAMENTE en formato JSON con la siguiente estructura:
 {
   "title": "string",
   "description": "string",
@@ -133,19 +134,14 @@ Responde ÚNICAMENTE en formato JSON válido, sin texto adicional, con la siguie
   "modules": [
     {
       "title": "string",
-      "lessons": ["string", "string", ...]
+      "lessons": ["string", "string"]
     }
   ]
 }`;
 
   try {
     const content = await callGeminiAPI(prompt, true);
-    // Extract JSON from the response (handle cases where there's extra text)
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error('No JSON found in response');
-    }
-    return JSON.parse(jsonMatch[0]);
+    return JSON.parse(content);
   } catch (error) {
     console.error('Error generating course overview:', error);
     throw new Error('Error al generar la vista general del curso');
@@ -236,7 +232,7 @@ Crea 2-3 cuestionarios diferentes con las siguientes características:
 - Tiempo estimado de completación
 - Temas variados cubriendo todos los módulos
 
-Responde ÚNICAMENTE en formato JSON válido, sin texto adicional, con la siguiente estructura exacta:
+Responde ÚNICAMENTE en formato JSON con la siguiente estructura:
 [
   {
     "title": "string",
@@ -256,12 +252,7 @@ Responde ÚNICAMENTE en formato JSON válido, sin texto adicional, con la siguie
 
   try {
     const content = await callGeminiAPI(prompt, true);
-    // Extract JSON from the response
-    const jsonMatch = content.match(/\[[\s\S]*\]/);
-    if (!jsonMatch) {
-      throw new Error('No JSON array found in response');
-    }
-    return JSON.parse(jsonMatch[0]);
+    return JSON.parse(content);
   } catch (error) {
     console.error('Error generating quizzes:', error);
     throw new Error('Error al generar los cuestionarios');

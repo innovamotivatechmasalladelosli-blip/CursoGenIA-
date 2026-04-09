@@ -12,8 +12,10 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { useEffect, useState } from 'react';
-import { Loader2, Download, Copy, Share2, BookOpen, Zap, Target, FileText } from 'lucide-react';
+import { useState } from 'react';
+import { Loader2, Download, Copy, Share2, BookOpen, Zap, Target, FileText, CheckCircle2 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import {
   generateCourseOverview,
   generateModuleContent,
@@ -23,7 +25,6 @@ import {
 import {
   exportAsMarkdown,
   exportAsPDF,
-  generateQRCode,
   exportQuizAsHTML,
   downloadFile,
   copyToClipboard,
@@ -87,8 +88,10 @@ export default function Home() {
     }
 
     setIsLoading(true);
+    setCourseData(null);
+    
     try {
-      toast.loading('Generando vista general del curso...');
+      toast.info('Iniciando generación del curso...');
 
       // Generate overview
       const overview = await generateCourseOverview({
@@ -99,7 +102,7 @@ export default function Home() {
         objectives,
       });
 
-      toast.loading('Generando contenido detallado...');
+      toast.info('Generando contenido de los módulos...');
 
       // Generate module content
       const moduleContents = await Promise.all(
@@ -119,23 +122,21 @@ export default function Home() {
         content: moduleContents[index],
       }));
 
-      toast.loading('Generando ejercicios prácticos...');
+      toast.info('Generando ejercicios y evaluaciones...');
 
-      // Generate exercises
-      const exercisesContent = await generateExercises({
-        courseTitle: overview.title,
-        modules: overview.modules,
-        level: overview.level,
-      });
-
-      toast.loading('Generando cuestionarios...');
-
-      // Generate quizzes
-      const quizzesContent = await generateQuizzes({
-        courseTitle: overview.title,
-        modules: overview.modules,
-        level: overview.level,
-      });
+      // Generate exercises and quizzes in parallel
+      const [exercisesContent, quizzesContent] = await Promise.all([
+        generateExercises({
+          courseTitle: overview.title,
+          modules: overview.modules,
+          level: overview.level,
+        }),
+        generateQuizzes({
+          courseTitle: overview.title,
+          modules: overview.modules,
+          level: overview.level,
+        })
+      ]);
 
       const newCourseData: CourseData = {
         overview,
@@ -198,19 +199,19 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-[#0f172a] text-slate-200 font-inter">
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-white/80 bg-white/95 backdrop-blur-sm shadow-sm">
+      <header className="sticky top-0 z-50 border-b border-slate-800 bg-[#0f172a]/80 backdrop-blur-md shadow-xl">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-cyan-500 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/20">
               <BookOpen className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
                 InnovACurso+
               </h1>
-              <p className="text-xs text-gray-500">Generador de Cursos con IA</p>
+              <p className="text-xs text-slate-400 font-medium tracking-wider uppercase">AI Course Generator</p>
             </div>
           </div>
         </div>
@@ -218,158 +219,125 @@ export default function Home() {
 
       <main className="container mx-auto px-4 py-12">
         {/* Hero Section */}
-        <div className="mb-12 text-center">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Crea cursos completos en minutos con IA
+        <div className="mb-16 text-center">
+          <h2 className="text-4xl md:text-6xl font-extrabold text-white mb-6 tracking-tight">
+            Crea cursos con <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400">Inteligencia Artificial</span>
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Utiliza la inteligencia artificial avanzada para generar contenido educativo estructurado,
-            detallado y personalizado para tus necesidades específicas.
+          <p className="text-lg text-slate-400 max-w-3xl mx-auto leading-relaxed">
+            Genera contenido educativo estructurado, detallado y personalizado en segundos. 
+            Potenciado por Gemini 1.5 Flash para resultados precisos y rápidos.
           </p>
         </div>
 
         {/* Features Grid */}
-        <div className="grid md:grid-cols-4 gap-4 mb-12">
-          <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mb-2">
-                <Zap className="w-5 h-5 text-blue-600" />
-              </div>
-              <CardTitle className="text-base">Generación Rápida</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600">
-                Reduce semanas de trabajo a solo minutos con la generación automática.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center mb-2">
-                <Target className="w-5 h-5 text-indigo-600" />
-              </div>
-              <CardTitle className="text-base">Personalizado</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600">
-                Adapta cursos a diferentes niveles y audiencias específicas.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mb-2">
-                <FileText className="w-5 h-5 text-purple-600" />
-              </div>
-              <CardTitle className="text-base">Estructura Completa</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600">
-                Módulos, lecciones, ejercicios y evaluaciones incluidas.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-sm hover:shadow-md transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mb-2">
-                <Download className="w-5 h-5 text-green-600" />
-              </div>
-              <CardTitle className="text-base">Exportación Flexible</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600">
-                Exporta en PDF, Markdown, HTML y más formatos.
-              </p>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+          {[
+            { icon: Zap, title: "Generación Rápida", desc: "Reduce semanas de trabajo a solo minutos.", color: "text-purple-400", bg: "bg-purple-400/10" },
+            { icon: Target, title: "Personalizado", desc: "Adaptado a diferentes niveles y audiencias.", color: "text-cyan-400", bg: "bg-cyan-400/10" },
+            { icon: FileText, title: "Estructura Completa", desc: "Módulos, lecciones y evaluaciones.", color: "text-indigo-400", bg: "bg-indigo-400/10" },
+            { icon: Download, title: "Exportación", desc: "PDF, Markdown y HTML interactivo.", color: "text-emerald-400", bg: "bg-emerald-400/10" }
+          ].map((f, i) => (
+            <Card key={i} className="bg-slate-900/50 border-slate-800 hover:border-slate-700 transition-all hover:-translate-y-1">
+              <CardHeader className="pb-3">
+                <div className={`w-12 h-12 ${f.bg} rounded-xl flex items-center justify-center mb-4`}>
+                  <f.icon className={`w-6 h-6 ${f.color}`} />
+                </div>
+                <CardTitle className="text-lg text-white">{f.title}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-slate-400 leading-relaxed">{f.desc}</p>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
         {/* Main Generator Section */}
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className="grid lg:grid-cols-12 gap-8">
           {/* Input Section */}
-          <Card className="lg:col-span-1 border-0 shadow-lg">
+          <Card className="lg:col-span-4 bg-slate-900 border-slate-800 shadow-2xl h-fit sticky top-24">
             <CardHeader>
-              <CardTitle>Configurar Curso</CardTitle>
-              <CardDescription>Completa los detalles de tu curso</CardDescription>
+              <CardTitle className="text-white">Configurar Curso</CardTitle>
+              <CardDescription className="text-slate-400">Define los parámetros de tu contenido</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="topic">Tema del Curso</Label>
+                <Label htmlFor="topic" className="text-slate-300">Tema del Curso</Label>
                 <Input
                   id="topic"
-                  placeholder="Ej: Desarrollo web para principiantes"
+                  placeholder="Ej: Desarrollo web con React"
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
                   disabled={isLoading}
+                  className="bg-slate-800 border-slate-700 text-white focus:ring-purple-500 focus:border-purple-500"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="level">Nivel</Label>
-                <Select value={level} onValueChange={setLevel} disabled={isLoading}>
-                  <SelectTrigger id="level">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="principiante">Principiante</SelectItem>
-                    <SelectItem value="intermedio">Intermedio</SelectItem>
-                    <SelectItem value="avanzado">Avanzado</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="level" className="text-slate-300">Nivel</Label>
+                  <Select value={level} onValueChange={setLevel} disabled={isLoading}>
+                    <SelectTrigger id="level" className="bg-slate-800 border-slate-700 text-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                      <SelectItem value="principiante">Principiante</SelectItem>
+                      <SelectItem value="intermedio">Intermedio</SelectItem>
+                      <SelectItem value="avanzado">Avanzado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="modules" className="text-slate-300">Módulos</Label>
+                  <Input
+                    id="modules"
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={modules}
+                    onChange={(e) => setModules(parseInt(e.target.value))}
+                    disabled={isLoading}
+                    className="bg-slate-800 border-slate-700 text-white"
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="modules">Número de Módulos</Label>
-                <Input
-                  id="modules"
-                  type="number"
-                  min="1"
-                  max="10"
-                  value={modules}
-                  onChange={(e) => setModules(parseInt(e.target.value))}
-                  disabled={isLoading}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="audience">Audiencia Objetivo</Label>
+                <Label htmlFor="audience" className="text-slate-300">Audiencia Objetivo</Label>
                 <Input
                   id="audience"
-                  placeholder="Ej: Estudiantes universitarios"
+                  placeholder="Ej: Estudiantes de programación"
                   value={audience}
                   onChange={(e) => setAudience(e.target.value)}
                   disabled={isLoading}
+                  className="bg-slate-800 border-slate-700 text-white"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="objectives">Objetivos de Aprendizaje</Label>
+                <Label htmlFor="objectives" className="text-slate-300">Objetivos</Label>
                 <Textarea
                   id="objectives"
-                  placeholder="Ej: Comprender los fundamentos de HTML, CSS y JavaScript"
+                  placeholder="Ej: Aprender hooks, componentes y estado..."
                   value={objectives}
                   onChange={(e) => setObjectives(e.target.value)}
                   disabled={isLoading}
-                  className="min-h-24"
+                  className="bg-slate-800 border-slate-700 text-white min-h-[100px] resize-none"
                 />
               </div>
 
               <Button
                 onClick={handleGenerateCourse}
                 disabled={isLoading}
-                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white h-11 font-semibold"
+                className="w-full bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700 text-white h-12 font-bold rounded-xl shadow-lg shadow-purple-500/20 transition-all active:scale-95"
               >
                 {isLoading ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                     Generando...
                   </>
                 ) : (
                   <>
-                    <Zap className="w-4 h-4 mr-2" />
+                    <Zap className="w-5 h-5 mr-2" />
                     Generar Curso
                   </>
                 )}
@@ -378,131 +346,165 @@ export default function Home() {
           </Card>
 
           {/* Output Section */}
-          <Card className="lg:col-span-2 border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle>Contenido Generado</CardTitle>
-              <CardDescription>
-                {courseData ? 'Tu curso está listo para explorar y exportar' : 'Genera un curso para ver el contenido aquí'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {courseData ? (
-                <div className="space-y-4">
-                  <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <TabsList className="grid w-full grid-cols-4">
-                      <TabsTrigger value="overview">General</TabsTrigger>
-                      <TabsTrigger value="content">Contenido</TabsTrigger>
-                      <TabsTrigger value="exercises">Ejercicios</TabsTrigger>
-                      <TabsTrigger value="quizzes">Quizzes</TabsTrigger>
-                    </TabsList>
-
-                    <TabsContent value="overview" className="space-y-4 max-h-96 overflow-y-auto">
-                      <div className="space-y-3">
-                        <div>
-                          <h3 className="font-semibold text-lg text-gray-900">{courseData.overview.title}</h3>
-                          <p className="text-sm text-gray-600 mt-1">{courseData.overview.description}</p>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3 text-sm">
-                          <div className="bg-blue-50 p-3 rounded-lg">
-                            <p className="text-gray-600">Nivel</p>
-                            <p className="font-semibold text-gray-900">{courseData.overview.level}</p>
-                          </div>
-                          <div className="bg-indigo-50 p-3 rounded-lg">
-                            <p className="text-gray-600">Duración</p>
-                            <p className="font-semibold text-gray-900">{courseData.overview.estimatedDuration}</p>
-                          </div>
-                        </div>
-
-                        <div>
-                          <p className="font-semibold text-sm text-gray-900 mb-2">Módulos ({courseData.overview.modules.length})</p>
-                          <div className="space-y-2">
-                            {courseData.overview.modules.map((module, index) => (
-                              <div key={index} className="bg-gray-50 p-3 rounded-lg">
-                                <p className="font-medium text-gray-900">
-                                  Módulo {index + 1}: {module.title}
-                                </p>
-                                <p className="text-xs text-gray-600 mt-1">
-                                  {module.lessons.length} lecciones
-                                </p>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </TabsContent>
-
-                    <TabsContent value="content" className="space-y-4 max-h-96 overflow-y-auto">
-                      {courseData.content.modules.map((module, index) => (
-                        <div key={index} className="space-y-2">
-                          <h4 className="font-semibold text-gray-900">{module.title}</h4>
-                          <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg whitespace-pre-wrap line-clamp-4">
-                            {module.content.substring(0, 300)}...
-                          </div>
-                        </div>
-                      ))}
-                    </TabsContent>
-
-                    <TabsContent value="exercises" className="space-y-4 max-h-96 overflow-y-auto">
-                      <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg whitespace-pre-wrap line-clamp-6">
-                        {courseData.exercises.substring(0, 500)}...
-                      </div>
-                    </TabsContent>
-
-                    <TabsContent value="quizzes" className="space-y-4 max-h-96 overflow-y-auto">
-                      {courseData.quizzes.map((quiz, index) => (
-                        <div key={index} className="bg-gray-50 p-3 rounded-lg">
-                          <p className="font-semibold text-gray-900">{quiz.title}</p>
-                          <p className="text-xs text-gray-600 mt-1">
-                            Dificultad: {quiz.difficulty}/5 • {quiz.questions.length} preguntas • {quiz.estimatedTime}
-                          </p>
-                        </div>
-                      ))}
-                    </TabsContent>
-                  </Tabs>
-
-                  {/* Export Buttons */}
-                  <div className="grid grid-cols-2 gap-2 pt-4 border-t">
-                    <Button
-                      onClick={handleExportMarkdown}
-                      variant="outline"
-                      className="text-sm"
-                    >
-                      <Download className="w-4 h-4 mr-2" />
-                      Markdown
-                    </Button>
-                    <Button
-                      onClick={handleExportPDF}
-                      variant="outline"
-                      className="text-sm"
-                    >
-                      <Download className="w-4 h-4 mr-2" />
-                      PDF
-                    </Button>
-                    <Button
-                      onClick={handleExportQuiz}
-                      variant="outline"
-                      className="text-sm"
-                    >
-                      <Share2 className="w-4 h-4 mr-2" />
-                      Quiz HTML
-                    </Button>
-                    <Button
-                      onClick={handleCopyContent}
-                      variant="outline"
-                      className="text-sm"
-                    >
-                      <Copy className="w-4 h-4 mr-2" />
-                      Copiar
+          <Card className="lg:col-span-8 bg-slate-900 border-slate-800 shadow-2xl min-h-[600px] flex flex-col">
+            <CardHeader className="border-b border-slate-800">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-white">Contenido Generado</CardTitle>
+                  <CardDescription className="text-slate-400">
+                    {courseData ? 'Tu curso está listo para explorar' : 'Los resultados aparecerán aquí'}
+                  </CardDescription>
+                </div>
+                {courseData && (
+                  <div className="flex gap-2">
+                    <Button onClick={handleCopyContent} variant="outline" size="sm" className="border-slate-700 text-slate-300 hover:bg-slate-800">
+                      <Copy className="w-4 h-4" />
                     </Button>
                   </div>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent className="flex-1 p-0 overflow-hidden flex flex-col">
+              {courseData ? (
+                <div className="flex flex-col h-full">
+                  <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col h-full">
+                    <TabsList className="bg-slate-800/50 p-1 m-4 rounded-xl border border-slate-700/50">
+                      <TabsTrigger value="overview" className="rounded-lg data-[state=active]:bg-purple-600 data-[state=active]:text-white">General</TabsTrigger>
+                      <TabsTrigger value="content" className="rounded-lg data-[state=active]:bg-purple-600 data-[state=active]:text-white">Contenido</TabsTrigger>
+                      <TabsTrigger value="exercises" className="rounded-lg data-[state=active]:bg-purple-600 data-[state=active]:text-white">Ejercicios</TabsTrigger>
+                      <TabsTrigger value="quizzes" className="rounded-lg data-[state=active]:bg-purple-600 data-[state=active]:text-white">Quizzes</TabsTrigger>
+                    </TabsList>
+
+                    <div className="flex-1 overflow-y-auto px-6 pb-6 custom-scrollbar">
+                      <TabsContent value="overview" className="mt-0 space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <div className="space-y-4">
+                          <h3 className="text-3xl font-bold text-white">{courseData.overview.title}</h3>
+                          <p className="text-slate-400 leading-relaxed text-lg">{courseData.overview.description}</p>
+                          
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-700/50">
+                              <p className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-1">Nivel</p>
+                              <p className="text-purple-400 font-semibold">{courseData.overview.level}</p>
+                            </div>
+                            <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-700/50">
+                              <p className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-1">Duración</p>
+                              <p className="text-cyan-400 font-semibold">{courseData.overview.estimatedDuration}</p>
+                            </div>
+                            <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-700/50">
+                              <p className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-1">Módulos</p>
+                              <p className="text-indigo-400 font-semibold">{courseData.overview.modules.length}</p>
+                            </div>
+                          </div>
+
+                          <div className="space-y-4 pt-4">
+                            <h4 className="text-xl font-bold text-white flex items-center gap-2">
+                              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                              Estructura del Curso
+                            </h4>
+                            <div className="grid gap-3">
+                              {courseData.overview.modules.map((module, index) => (
+                                <div key={index} className="bg-slate-800/30 p-4 rounded-xl border border-slate-700/30 hover:border-purple-500/30 transition-colors">
+                                  <p className="font-bold text-slate-200">Módulo {index + 1}: {module.title}</p>
+                                  <ul className="mt-2 space-y-1">
+                                    {module.lessons.map((lesson, lIdx) => (
+                                      <li key={lIdx} className="text-sm text-slate-400 flex items-center gap-2">
+                                        <div className="w-1 h-1 bg-slate-600 rounded-full" />
+                                        {lesson}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </TabsContent>
+
+                      <TabsContent value="content" className="mt-0 space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        {courseData.content.modules.map((module, index) => (
+                          <div key={index} className="space-y-4">
+                            <div className="flex items-center gap-4">
+                              <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                                {index + 1}
+                              </div>
+                              <h4 className="text-2xl font-bold text-white">{module.title}</h4>
+                            </div>
+                            <div className="prose prose-invert prose-slate max-w-none bg-slate-800/20 p-6 rounded-2xl border border-slate-700/30">
+                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                {module.content}
+                              </ReactMarkdown>
+                            </div>
+                          </div>
+                        ))}
+                      </TabsContent>
+
+                      <TabsContent value="exercises" className="mt-0 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <div className="prose prose-invert prose-slate max-w-none bg-slate-800/20 p-6 rounded-2xl border border-slate-700/30">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {courseData.exercises}
+                          </ReactMarkdown>
+                        </div>
+                      </TabsContent>
+
+                      <TabsContent value="quizzes" className="mt-0 space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        {courseData.quizzes.map((quiz, index) => (
+                          <div key={index} className="bg-slate-800/40 p-6 rounded-2xl border border-slate-700/50 space-y-4">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <h4 className="text-xl font-bold text-white">{quiz.title}</h4>
+                                <p className="text-slate-400 text-sm mt-1">{quiz.description}</p>
+                              </div>
+                              <div className="bg-purple-600/20 text-purple-400 px-3 py-1 rounded-full text-xs font-bold border border-purple-500/20">
+                                Dificultad: {quiz.difficulty}/5
+                              </div>
+                            </div>
+                            <div className="grid gap-4 mt-4">
+                              {quiz.questions.map((q, qIdx) => (
+                                <div key={qIdx} className="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+                                  <p className="text-slate-200 font-medium mb-3">{qIdx + 1}. {q.question}</p>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    {q.options.map((opt, oIdx) => (
+                                      <div key={oIdx} className={`p-3 rounded-lg text-sm border ${oIdx === q.correct ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-slate-800 border-slate-700 text-slate-400'}`}>
+                                        {opt}
+                                      </div>
+                                    ))}
+                                  </div>
+                                  <p className="mt-3 text-xs text-slate-500 italic">
+                                    <span className="font-bold text-slate-400">Explicación:</span> {q.explanation}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </TabsContent>
+                    </div>
+
+                    {/* Export Footer */}
+                    <div className="p-4 border-t border-slate-800 bg-slate-900/80 backdrop-blur-sm grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <Button onClick={handleExportMarkdown} variant="outline" className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white">
+                        <Download className="w-4 h-4 mr-2" /> Markdown
+                      </Button>
+                      <Button onClick={handleExportPDF} variant="outline" className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white">
+                        <Download className="w-4 h-4 mr-2" /> PDF
+                      </Button>
+                      <Button onClick={handleExportQuiz} variant="outline" className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white">
+                        <Share2 className="w-4 h-4 mr-2" /> Quiz HTML
+                      </Button>
+                      <Button onClick={handleCopyContent} variant="outline" className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white">
+                        <Copy className="w-4 h-4 mr-2" /> Copiar Todo
+                      </Button>
+                    </div>
+                  </Tabs>
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center h-96 text-center">
-                  <BookOpen className="w-16 h-16 text-gray-300 mb-4" />
-                  <p className="text-gray-500 mb-2">Genera un curso para ver el contenido aquí</p>
-                  <p className="text-sm text-gray-400">
-                    Completa el formulario y haz clic en "Generar Curso"
+                <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center p-8">
+                  <div className="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mb-6 animate-pulse">
+                    <BookOpen className="w-10 h-10 text-slate-600" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-2">Listo para comenzar</h3>
+                  <p className="text-slate-400 max-w-xs mx-auto">
+                    Completa el formulario de la izquierda y haz clic en "Generar Curso" para ver la magia.
                   </p>
                 </div>
               )}
@@ -512,14 +514,37 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="mt-20 border-t border-gray-200 bg-white">
-        <div className="container mx-auto px-4 py-8 text-center text-sm text-gray-600">
-          <p>© 2025 InnovACurso+ de InnovaMotivaTech. Todos los derechos reservados.</p>
-          <p className="mt-2 text-xs">
-            Este es un proyecto de demostración. La calidad del contenido generado puede variar.
+      <footer className="mt-20 border-t border-slate-800 bg-slate-900/50">
+        <div className="container mx-auto px-4 py-12 text-center">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <div className="w-6 h-6 bg-gradient-to-br from-purple-600 to-cyan-500 rounded flex items-center justify-center">
+              <BookOpen className="w-4 h-4 text-white" />
+            </div>
+            <span className="font-bold text-white">InnovACurso+</span>
+          </div>
+          <p className="text-slate-500 text-sm">© 2026 InnovaMotivaTech. Todos los derechos reservados.</p>
+          <p className="mt-2 text-xs text-slate-600">
+            Desarrollado con Inteligencia Artificial para potenciar el aprendizaje continuo.
           </p>
         </div>
       </footer>
+
+      <style dangerouslySetInnerHTML={{ __html: `
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #334155;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #475569;
+        }
+        .font-inter { font-family: 'Inter', sans-serif; }
+      `}} />
     </div>
   );
 }
