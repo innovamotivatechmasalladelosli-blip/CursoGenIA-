@@ -72,8 +72,16 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [courseData, setCourseData] = useState<CourseData | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
+  const hasGeminiApiKey = Boolean(import.meta.env.VITE_GEMINI_API_KEY?.trim());
 
   const handleGenerateCourse = async () => {
+    if (!hasGeminiApiKey) {
+      toast.error(
+        'La generación con IA no está configurada. Añade VITE_GEMINI_API_KEY al archivo .env.local y reinicia la aplicación.'
+      );
+      return;
+    }
+
     if (!topic.trim()) {
       toast.error('Por favor ingresa el tema del curso');
       return;
